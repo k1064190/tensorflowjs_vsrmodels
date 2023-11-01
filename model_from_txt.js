@@ -1,5 +1,5 @@
-const tf = require('@tensorflow/tfjs');
-require('@tensorflow/tfjs-node');
+const tf = require('@tensorflow/tfjs-node');
+// require('@tensorflow/tfjs-node');
 const build_model = require('./models/rrn_based.js');
 const fs = require('fs');
 
@@ -10,14 +10,14 @@ function testModel() {
     // 모델의 레이어를 확인합니다.
     model.summary();
     console.log("모델 레이어 확인")
-    for (layer of model.layers) {
-        console.log(layer.name)
-        for (weight of layer.getWeights()) {
-            console.log(weight.name)
-            console.log(weight.shape)
-            console.log(weight.arraySync())
-        }
-    }
+    // for (layer of model.layers) {
+    //     console.log(layer.name)
+    //     for (weight of layer.getWeights()) {
+    //         console.log(weight.name)
+    //         console.log(weight.shape)
+    //         console.log(weight.arraySync())
+    //     }
+    // }
 }
 
 function testExistingModel(model) {
@@ -79,6 +79,7 @@ function loadModelFromTxt() {
     }
 
     // 모델을 반환합니다.
+    model.summary();
     return model;
 }
 
@@ -106,3 +107,6 @@ async function saveModel(model) {
 
 
 module.exports = loadModelFromTxt;
+
+let model = loadModelFromTxt();
+saveModel(model);
