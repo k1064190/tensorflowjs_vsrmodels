@@ -1,4 +1,5 @@
 const tf = require('@tensorflow/tfjs');
+require('@tensorflow/tfjs-node');
 const build_model = require('./models/rrn_based.js');
 const fs = require('fs');
 
@@ -83,7 +84,7 @@ function loadModelFromTxt() {
 
 async function saveModel(model) {
     // 모델이 저장될 경로를 지정합니다.
-    const modelPath = 'file://D:/gitkraken/tensorflowjs_vsrmodels/ckpt/rnn_based_16';
+    const modelPath = 'file://./ckpt/rnn_based_16';
 
     try {
         // 모델을 저장합니다.
@@ -101,4 +102,4 @@ const model = loadModelFromTxt();
 
 // 모델을 저장합니다.
 // saveModel(model);
-model.save('file://D:/gitkraken/tensorflowjs_vsrmodels/ckpt/rnn_based_16');
+model.save('file://./ckpt/rnn_based_16');
