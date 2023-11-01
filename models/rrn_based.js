@@ -1,4 +1,4 @@
-tf = require('@tensorflow/tfjs-node');
+tf = require('@tensorflow/tfjs');
 const fs = require('fs');
 const path = require('path');
 
@@ -114,36 +114,37 @@ const path = require('path');
 //     return model
 
 
-function residual_block(x, base_channels) {
-    identity = x;
+function build_residual_block(base_channels) {
+    identity = tf.input({shape: [null, null, base_channels]});
     out = tf.layers.conv2d({
         filters: base_channels,
         kernelSize: 3,
         strides: 1,
         padding: 'same',
         activation: 'relu'
-    }).apply(x);
+    }).apply(identity);
     out = tf.layers.conv2d({
         filters: base_channels,
         kernelSize: 3,
         strides: 1,
         padding: 'same'
     }).apply(out);
-    return identity.add(out);
+    out = tf.layers.add().apply([identity, out]);
+    return tf.model({inputs: identity, outputs: out});
 }
 
 
 // tfjs model
 function build_rrn(back_channels=3, cur_channels=3, base_channels=16) {
     in_channels = 3;
-    out_channels = 6;
+    out_channels = 3;
     scale = 4;
 
-    x1 = tf.layers.input({shape: [null, null, back_channels]}); // back_channels = 3
-    x2 = tf.layers.input({shape: [null, null, cur_channels]});  // cur_channels = 3
-    hidden = tf.layers.input({shape: [null, null, base_channels]});
+    const x1 = tf.input({shape: [null, null, back_channels]}); // back_channels = 3
+    const x2 = tf.input({shape: [null, null, cur_channels]});  // cur_channels = 3
+    const hidden = tf.input({shape: [null, null, base_channels]});
 
-    out = tf.layers.concatenate().apply([x1, x2, hidden]);
+    let out = tf.layers.concatenate().apply([x1, x2, hidden]);
 
     // first conv
     out = tf.layers.conv2d({
@@ -154,13 +155,17 @@ function build_rrn(back_channels=3, cur_channels=3, base_channels=16) {
         activation: 'relu'
     }).apply(out);
 
+    const recon_trunk = tf.sequential();
+
     // recon_trunk
     for (let i = 0; i < 5; i++) {
-        out = residual_block(out, base_channels);
+        recon_trunk.add(build_residual_block(base_channels));
     }
 
+    out = recon_trunk.apply(out);
+
     // conv_hidden
-    hidden = tf.layers.conv2d({
+    const output_hidden = tf.layers.conv2d({
         filters: base_channels,
         kernelSize: 3,
         strides: 1,
@@ -176,12 +181,10 @@ function build_rrn(back_channels=3, cur_channels=3, base_channels=16) {
         padding: 'same'
     }).apply(out);
 
-    out = tf.layers.depthToSpace(blockSize=scale, dataFormat='NHWC').apply(out);
-    bilinear = tf.image.resize(x2, size=(h * scale, w * scale));
+    // out = tf.depthToSpace(out, scale);
+    // bilinear = tf.image.resize(x2, size=(h * scale, w * scale));
 
-    if (!training) {
-        out = tf.clipByValue(0, 255).apply(out);
-    }
-
-    return tf.model({inputs: [x1, x2, hidden], outputs: [out, hidden]});
+    return tf.model({inputs: [x1, x2, hidden], outputs: [out, output_hidden]});
 }
+
+module.exports = build_rrn;
