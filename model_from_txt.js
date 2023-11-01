@@ -96,10 +96,13 @@ async function saveModel(model) {
 }
 
 
-// 모델을 테스트합니다.
-const model = loadModelFromTxt();
-// testExistingModel(model);
+// // 모델을 테스트합니다.
+// const model = loadModelFromTxt();
+// // testExistingModel(model);
+//
+// // 모델을 저장합니다.
+// // saveModel(model);
+// model.save('file://./ckpt/rnn_based_16');
 
-// 모델을 저장합니다.
-// saveModel(model);
-model.save('file://./ckpt/rnn_based_16');
+
+module.exports = loadModelFromTxt;
