@@ -11,6 +11,6 @@
   "license": "ISC",
   "dependencies": {
     "@tensorflow/tfjs": "^4.12.0",
-    "jimp": "^0.22.10"
+    "@tensorflow/tfjs-node": "^4.12.0"
   }
 }

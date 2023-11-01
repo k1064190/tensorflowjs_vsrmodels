@@ -108,5 +108,5 @@ async function saveModel(model) {
 
 module.exports = loadModelFromTxt;
 
-let model = loadModelFromTxt();
-saveModel(model);
+// let model = loadModelFromTxt();
+// saveModel(model);

@@ -1,11 +1,15 @@
-tf = require('@tensorflow/tfjs-node');
+const tf = require('@tensorflow/tfjs-node');
 const fs = require('fs');
 const path = require('path');
 
+const height = 180;
+const width = 320;
+const scale = 4;
+
 class DepthToSpace extends tf.layers.Layer {
-    constructor(block_size) {
+    constructor() {
         super({});
-        this.block_size = block_size;
+        this.block_size = scale;
     }
 
     // call(input) {
@@ -14,7 +18,7 @@ class DepthToSpace extends tf.layers.Layer {
     call(inputs) {
         return tf.tidy(() => {
             const [input] = inputs;
-            return tf.depthToSpace(input, this.blockSize);
+            return tf.depthToSpace(input, this.block_size);
         });
     }
 
@@ -33,15 +37,15 @@ class DepthToSpace extends tf.layers.Layer {
 }
 
 class BilinearResize extends tf.layers.Layer {
-    constructor(height, width) {
+    constructor() {
         super({});
-        this.height = height;
-        this.width = width;
+        this.height = scale*height;
+        this.width = scale*width;
     }
 
-    call(input) {
+    call(inputs) {
         return tf.tidy(() => {
-            input = [input]
+            const [input] = inputs;
             return tf.image.resizeBilinear(input, [this.height, this.width]);
         })
     }
@@ -85,7 +89,6 @@ function build_residual_block(base_channels) {
 function build_rrn(back_channels=3, cur_channels=3, base_channels=16) {
     in_channels = 3;
     out_channels = 3;
-    scale = 4;
 
     const x1 = tf.input({shape: [null, null, back_channels]}); // back_channels = 3
     const x2 = tf.input({shape: [null, null, cur_channels]});  // cur_channels = 3
@@ -131,9 +134,8 @@ function build_rrn(back_channels=3, cur_channels=3, base_channels=16) {
         padding: 'same'
     }).apply(out);
 
-    out = new DepthToSpace(scale).apply(out);
-    let bilinear = new BilinearResize(h * scale, w * scale).apply(x2);
-    // bilinear = tf.image.resize(x2, size=(h * scale, w * scale));
+    out = new DepthToSpace().apply(out);
+    let bilinear = new BilinearResize().apply(x2);
     out = tf.layers.add().apply([out, bilinear]);
 
     return tf.model({inputs: [x1, x2, hidden], outputs: [out, output_hidden]});

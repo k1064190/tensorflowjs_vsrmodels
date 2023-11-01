@@ -1,6 +1,5 @@
 const tf = require('@tensorflow/tfjs-node');
 const load_model_from_txt = require('./model_from_txt.js')
-const get_image_data = require('get-image-data');
 
 const fs = require('fs');
 
